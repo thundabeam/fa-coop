@@ -44,3 +44,20 @@ function BeginSession()
         end
     end
 end
+
+-- Mission scripts hard-code player army colors in OnStart (e.g.
+-- `ScenarioFramework.SetUEFPlayerColor(Player1)`), which overwrites the color each
+-- player picked in the lobby. The engine already applied the lobby colors when the
+-- armies were created, so ignore script color changes for human player armies.
+local ReallySetArmyColor = SetArmyColor
+function SetArmyColor(army, r, g, b)
+    local name = army
+    if type(army) == 'number' then
+        name = ArmyBrains[army] and ArmyBrains[army].Name
+    end
+    local setup = name and ScenarioInfo.ArmySetup and ScenarioInfo.ArmySetup[name]
+    if setup and setup.Human then
+        return
+    end
+    return ReallySetArmyColor(army, r, g, b)
+end
